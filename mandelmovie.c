@@ -19,22 +19,26 @@ TO GET 5 CHILDREN TO MAKE 50 IMAGES
 int main(int argc, char *argv[]) {
     int opt;
     int num_children = 0;
+    int num_threads = 0;
     time_t start_time, end_time;
 
     // Record the start time
     time(&start_time);
 
     //check for arguments
-    if (argc != 3) {
-        fprintf(stderr, "Usage: %s -n <# of children>\n", argv[0]);
+    if (argc != 5) {
+        fprintf(stderr, "Usage: %s -n <# of children> -t <# of threads>\n", argv[0]);
         return 1;
     }
 
     // Parse command line options using getopt
-    while ((opt = getopt(argc, argv, "n:")) != -1) {
+    while ((opt = getopt(argc, argv, "n:t:")) != -1) {
         switch (opt) {
             case 'n':
                 num_children = atoi(optarg);
+                break;
+            case 't':
+                num_threads = atoi(optarg);
                 break;
             default:
                 fprintf(stderr, "Usage: %s -n <# of children>\n", argv[0]);
@@ -45,6 +49,12 @@ int main(int argc, char *argv[]) {
     // Check if the number of children is specified and valid
     if (num_children <= 0) {
         fprintf(stderr, "Number of children must be a positive integer.\n");
+        return 1;
+    }
+
+    //check if threads is between 1 and 20
+    if (num_threads < 1 || num_threads > 20) {
+        fprintf(stderr, "Number of threads must be between 1 and 20.\n");
         return 1;
     }
 
@@ -65,7 +75,7 @@ int main(int argc, char *argv[]) {
                 double current_scale = scale - j * scale_step; // Calculate the current scale for the image
                 char command[256];
                 // Construct the command to generate the image
-                snprintf(command, sizeof(command), "./mandel -s %f -o mandel%d.jpg", current_scale, j + 1);
+                snprintf(command, sizeof(command), "./mandel -s %f -t %d -o mandel%d.jpg", current_scale, num_threads, j + 1);
                 int ret = system(command); // Execute the command
                 if (ret != 0) {
                     // If the command fails, print an error message and exit
